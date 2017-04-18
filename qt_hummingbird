@@ -1,0 +1,113 @@
+from PyQt5.QtCore import Qt, pyqtSignal, QObject, QRect
+from PyQt5.QtWidgets import (QMainWindow, QPushButton, QDesktopWidget, QWidget,
+                             QApplication,  QHBoxLayout, QLabel, QStackedLayout,
+                             QVBoxLayout, )
+from PyQt5.QtGui import QPixmap, QColor, QPainter, QBrush, QCursor
+import audiohandler
+
+class HummingbirdWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+        self.stacked_layout = QStackedLayout()
+        self.stacked_layout.addWidget(self.main_menu_widget)
+        self.central_widget = QWidget()
+        self.record_widget = None
+        self.central_widget.setLayout(self.stacked_layout)
+        self.setCentralWidget(self.central_widget)
+        self.resize(self.sizeHint())
+
+    def initUI(self):
+        #Geometry variables, used for scaling and setting windows size
+        y = 200
+        x = 350
+
+        #Button recreation
+        record_btn = QPushButton("Record")
+        record_btn.move(25,y-50)
+
+        #Add functionality to button
+        record_btn.clicked.connect(self.open_record_window)
+
+        #Create layout, and set geometry
+        self.main_menu_layout = QVBoxLayout()
+        r = QRect(50, 50, x, y)
+        self.main_menu_layout.setGeometry(r)
+
+        #Add button to canvas
+        self.main_menu_layout.addWidget(record_btn)
+
+        #Add logo to canvas
+        pixmap = QPixmap("hummingbird.png")
+        pixmap = pixmap.scaledToHeight(150)
+        logo = QLabel()
+        logo.setPixmap(pixmap)
+        self.main_menu_layout.addWidget(logo)
+        logo.setGeometry(20, 0, x, y)
+
+        #Load it up, declare main_menu_widget for main scope
+        self.center()
+        self.main_menu_widget = QWidget()
+        self.main_menu_widget.setLayout(self.main_menu_layout)
+        self.setWindowTitle('Hummingbird')
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def open_record_window(self):
+        if self.create_record_window():
+            self.stacked_layout.addWidget(self.record_widget)
+        self.stacked_layout.setCurrentIndex(1)
+
+
+    def create_record_window(self):
+        if self.record_widget != None:
+            print("Exists")
+            return False
+        x = 800
+        y = 350
+        btn1 = QPushButton("Start")
+        btn1.move(50,300)
+        btn1.setMaximumWidth(50)
+
+        btn2 = QPushButton("Stop")
+        btn2.move(125,300)
+        btn2.setMaximumWidth(50)
+
+        btn3 = QPushButton("Back")
+        btn3.move(200,300)
+        btn3.setMaximumWidth(50)
+
+        btn1.clicked.connect(self.listen)
+        btn2.clicked.connect(self.stop)
+        btn3.clicked.connect(self.go_back)
+
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(btn1)
+        button_layout.addWidget(btn2)
+        button_layout.addWidget(btn3)
+        self.record_layout = QVBoxLayout()
+        self.record_layout.setGeometry(QRect(50,50,x,y))
+        self.record_layout.addStretch()
+        self.record_layout.addLayout(button_layout)
+
+        self.record_widget = QWidget()
+        self.record_widget.setLayout(self.record_layout)
+        return True
+
+    def go_back(self):
+        self.stacked_layout.setCurrentIndex(0)
+        self.resize(self.sizeHint())
+
+    def listen(self):
+        sender = self.sender()
+        audio = audiohandler.AudioIO()
+        audio.start()
+        self.statusBar().showMessage("You sang a "+audio.CURRENT_NOTE+" "+str(audio.CURRENT_OCTAVE))
+        self.statusBar()
+
+    def stop(self):
+        pass

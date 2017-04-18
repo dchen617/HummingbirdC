@@ -1,10 +1,12 @@
 //
-//  main.cpp
+//  helper.cpp
 //  HummingbirdC++
 //
 //  Created by David Chen on 4/17/17.
 //  Copyright © 2017 David Chen. All rights reserved.
 //
+
+#include "helper.hpp"
 
 #include <iostream>
 #include <map>
